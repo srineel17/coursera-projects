@@ -49,7 +49,7 @@
      <ul>
        <li ng-repeat="item in ab.items">{{item.name}} bought</li>
      </ul>
-     <div ng-if="ab.flag" class="emptyMessage">{{ab.message}}</div>
+     <div ng-if="!ab.flag" class="emptyMessage">{{ab.message}}</div>
     </div>
   </div>
 </div>
