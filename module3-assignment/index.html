@@ -1,34 +1,27 @@
 <!doctype html>
-<html lang="en" >
+<html lang="en" ng-app="NarrowItDownApp">
   <head>
     <title>Narrow Down Your Menu Choice</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="angular.min.js"></script>
-    <script src="app.js"></script>
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="styles/bootstrap.min.css">
     <link rel="stylesheet" href="styles/styles.css">
   </head>
-<body ng-app='NarrowItDownApp'>
-   <div class="container" ng-controller='NarrowItDownController as nid'>
-     <div class="col-md-12">
-
-
+<body>
+   <div class="container" ng-controller="NarrowItDownController as NIDController">
     <h1>Narrow Down Your Chinese Menu Choice</h1>
 
     <div class="form-group">
-      <input type="text" placeholder="search term" class="form-control" ng-model="nid.searchTerm">
+      <input type="text" placeholder="search term" class="form-control" ng-model="NIDController.searchTerm">
     </div>
     <div class="form-group narrow-button">
-      <button class="btn btn-primary" ng-click="nid.logMenuItems(nid.searchTerm);">Narrow It Down For Me!</button>
+      <button class="btn btn-primary" ng-click="NIDController.narrowItems();">Narrow It Down For Me!</button>
     </div>
-  </div><hr>
-    <ul>
-      <li ng-repeat="item in nid.showlist" >{{item.name}}</li>
-    </ul>
 
     <!-- found-items should be implemented as a component -->
-    <!-- <found-items found-items="...." on-remove="...."></found-items> -->
+    <found-items found-items="NIDController.found" total-items="NIDController.totalItems" on-remove="NIDController.remove(index)"></found-items>
   </div>
-
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

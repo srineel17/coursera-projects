@@ -1,73 +1,86 @@
-(function () {
-'use strict';
+(function() {
+  var NarrowItDownApp = angular.module('NarrowItDownApp', []);
+  NarrowItDownApp.controller('NarrowItDownController', NItDownController);
+  NarrowItDownApp.service('MenuSearchService', MenuSearchService);
+  NarrowItDownApp.directive('foundItems', FoundItems);
 
-angular.module('NarrowItDownApp',[])
-.controller('NarrowItDownController',NarrowItDownController)
-.service('MenuSearchService',MenuSearchService)
-.constant('ApiBasePath', "https://davids-restaurant.herokuapp.com");
+  // service
+  MenuSearchService.$inject = ['$http'];
+  function MenuSearchService($http) {
+    var service = this;
 
-
-
-
-NarrowItDownController.$inject = ['MenuSearchService'];
-function NarrowItDownController(MenuSearchService) {
-
-  var nid = this;
-  nid.searchTerm = "";
-  nid.showlist=[];
-
-  // var promise = MenuSearchService.getMatchedMenuItems();
-
-  nid.logMenuItems = function(searchTerm){
-    var promise = MenuSearchService.getMatchedMenuItems();
-    promise.then(function (response) {
-      nid.items = response.data;
-      nid.items = nid.items["menu_items"];
-      for(var i = 0 ; i<nid.items.length;i++){
-        if(nid.items.indexOf(searchTerm)!==-1){
-          nid.showlist.push(nid.items[i]);
+    service.getMatchedMenuItems = function(searchTerm) {
+      return $http({
+        method: 'GET',
+        url: 'https://davids-restaurant.herokuapp.com/menu_items.json'
+      }).then(function (result) {
+        let foundItems = [];
+        let menuItems = result.data.menu_items;
+        for ( let i = 0; i < menuItems.length; i++) {
+          if ( searchTerm !== '' && menuItems[i].description.indexOf(searchTerm) !== -1 ) {
+            foundItems.push({
+              short_name : menuItems[i].short_name,
+              name : menuItems[i].name,
+              description : menuItems[i].description
+            });
+          }
         }
-      }
-    })
-    .catch(function (error) {
-      console.log("Something went terribly wrong.");
-    });
+        return foundItems;
+      }, function (error) {
+          console.log(error);
+      });
+    };
   }
-}
 
-MenuSearchService.$inject = ['$http', 'ApiBasePath'];
-function MenuSearchService($http,ApiBasePath) {
+  // controller
+  NItDownController.$inject = ['$scope', 'MenuSearchService'];
+  function NItDownController($scope, MenuSearchService) {
+    var nid = this;
+    nid.searchTerm = '';
+    nid.found = [];
+    nid.totalItems = -1;
+    nid.remove = function (index) {
+      nid.found.splice(index,1);
+      nid.totalItems = nid.found.length;
+    };
 
-  var service = this;
+    nid.narrowItems = function () {
+      nid.found = [];
+      nid.totalItems = -1;
+      MenuSearchService.getMatchedMenuItems(nid.searchTerm).then(function(result) {
+        nid.found = result;
+        nid.totalItems = nid.found.length;
+        nid.searchTerm = '';
+      });
+    }
+  }
 
-  service.getMatchedMenuItems = function (searchTerm) {
-    var response = $http({
-      method: "GET",
-      url: (ApiBasePath + "/menu_items.json")
-      // params: {
-      //   category: searchTerm
-      // }
-    });
+  // directive
+  function FoundItems() {
+    let ddo = {
+      templateUrl: 'items.html',
+      restrict: 'E',
+      scope: {
+        'foundItems' : '<',
+        'totalItems' : '<',
+        'onRemove' : '&'
+      },
+      controller: FoundItemsDirectiveController,
+      controllerAs: 'foundItemsDC',
+      bindToController: true
+    };
+    return ddo;
+  }
 
-    return response;
-    // .then(function (response) {
-    //
-    //   var temp = response.data["menu_items"];
-    //   var foundItems = function(searchTerm){
-    //
-    //     var retarr = [];
-    //     for(var i =0;i<temp.length; i++){
-    //       if(temp[i]["description"].indexOf(searchTerm)!==-1){
-    //         retarr.push(temp[i]);
-    //       }
-    //     }
-    //     return retarr;
-    //   }
-    //   return foundItems;
-    //
-    // });
-  };
+  function FoundItemsDirectiveController() {
+    var foundItemsDC = this;
 
-}
+    foundItemsDC.hasItems = function () {
+      return foundItemsDC.totalItems > 0;
+    };
 
+    foundItemsDC.hasNoItems = function () {
+      return foundItemsDC.totalItems === 0;
+    };
+  }
 })();
