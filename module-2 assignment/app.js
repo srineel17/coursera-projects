@@ -29,7 +29,7 @@
       var ab = this;
 
       ab.items = ShoppingListCheckOffService.getItems2();
-      ab.flag = ShoppingListCheckOffService.getFlag();
+
       ab.message = "Nothing bought yet.";
 
 
